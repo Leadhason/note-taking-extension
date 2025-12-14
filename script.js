@@ -1,35 +1,117 @@
 // Storage keys
-const STORAGE_KEY = 'quickNotes';
+const STORAGE_KEY = 'keepNotes';
+const THEME_KEY = 'keepNoteTheme';
 
 // DOM elements
-const noteInput = document.getElementById('noteInput');
-const addNoteBtn = document.getElementById('addNote');
-const clearInputBtn = document.getElementById('clearInput');
 const notesList = document.getElementById('notesList');
-const noteCount = document.getElementById('noteCount');
+const fab = document.getElementById('fab');
+const modal = document.getElementById('noteModal');
+const closeModalBtn = document.getElementById('closeModal');
+const saveNoteBtn = document.getElementById('saveNote');
+const noteTitleInput = document.getElementById('noteTitle');
+const noteContentInput = document.getElementById('noteContent');
+const searchInput = document.getElementById('searchInput');
+const themeToggle = document.getElementById('themeToggle');
+const colorDots = document.querySelectorAll('.color-dot');
+
+let currentNoteId = null;
+let selectedColor = '#3f51b5';
+let allNotes = [];
 
 // Load notes when page loads
 document.addEventListener('DOMContentLoaded', () => {
+    loadTheme();
     loadNotes();
     
     // Event listeners
-    addNoteBtn.addEventListener('click', addNote);
-    clearInputBtn.addEventListener('click', clearInput);
+    fab.addEventListener('click', openModal);
+    closeModalBtn.addEventListener('click', closeModal);
+    saveNoteBtn.addEventListener('click', saveNote);
+    searchInput.addEventListener('input', handleSearch);
+    themeToggle.addEventListener('click', toggleTheme);
     
-    // Allow Ctrl+Enter to save note
-    noteInput.addEventListener('keydown', (e) => {
-        if (e.ctrlKey && e.key === 'Enter') {
-            addNote();
+    // Color picker
+    colorDots.forEach(dot => {
+        dot.addEventListener('click', () => {
+            colorDots.forEach(d => d.classList.remove('active'));
+            dot.classList.add('active');
+            selectedColor = dot.dataset.color;
+        });
+    });
+    
+    // Close modal on outside click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
         }
     });
 });
+
+// Theme functions
+async function loadTheme() {
+    try {
+        const result = await chrome.storage.local.get([THEME_KEY]);
+        const theme = result[THEME_KEY] || 'light';
+        document.body.setAttribute('data-theme', theme);
+    } catch (error) {
+        console.error('Error loading theme:', error);
+    }
+}
+
+async function toggleTheme() {
+    const currentTheme = document.body.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    document.body.setAttribute('data-theme', newTheme);
+    await chrome.storage.local.set({ [THEME_KEY]: newTheme });
+}
+
+// Modal functions
+function openModal(noteId = null) {
+    currentNoteId = noteId;
+    modal.classList.add('active');
+    
+    if (noteId) {
+        // Edit existing note
+        const note = allNotes.find(n => n.id === noteId);
+        if (note) {
+            noteTitleInput.value = note.title;
+            noteContentInput.value = note.content;
+            selectedColor = note.color;
+            colorDots.forEach(dot => {
+                dot.classList.toggle('active', dot.dataset.color === note.color);
+            });
+        }
+    } else {
+        // New note
+        noteTitleInput.value = '';
+        noteContentInput.value = '';
+        selectedColor = '#3f51b5';
+        colorDots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === 1);
+        });
+    }
+    
+    noteTitleInput.focus();
+}
+
+function closeModal() {
+    modal.classList.remove('active');
+    currentNoteId = null;
+}
 
 // Load notes from Chrome storage
 async function loadNotes() {
     try {
         const result = await chrome.storage.local.get([STORAGE_KEY]);
-        const notes = result[STORAGE_KEY] || [];
-        displayNotes(notes);
+        allNotes = result[STORAGE_KEY] || [];
+        displayNotes(allNotes);
     } catch (error) {
         console.error('Error loading notes:', error);
     }
@@ -39,38 +121,58 @@ async function loadNotes() {
 async function saveNotes(notes) {
     try {
         await chrome.storage.local.set({ [STORAGE_KEY]: notes });
+        allNotes = notes;
     } catch (error) {
         console.error('Error saving notes:', error);
     }
 }
 
-// Add a new note
-async function addNote() {
-    const text = noteInput.value.trim();
+// Save a note
+async function saveNote() {
+    const title = noteTitleInput.value.trim();
+    const content = noteContentInput.value.trim();
     
-    if (!text) {
-        noteInput.focus();
+    if (!title && !content) {
         return;
     }
     
     const result = await chrome.storage.local.get([STORAGE_KEY]);
     const notes = result[STORAGE_KEY] || [];
     
-    const newNote = {
-        id: Date.now(),
-        text: text,
-        timestamp: new Date().toISOString(),
-        dateFormatted: new Date().toLocaleString()
-    };
+    if (currentNoteId) {
+        // Edit existing note
+        const index = notes.findIndex(n => n.id === currentNoteId);
+        if (index !== -1) {
+            notes[index] = {
+                ...notes[index],
+                title: title || 'Untitled',
+                content: content,
+                color: selectedColor,
+                updatedAt: new Date().toISOString()
+            };
+        }
+    } else {
+        // Create new note
+        const newNote = {
+            id: Date.now(),
+            title: title || 'Untitled',
+            content: content,
+            color: selectedColor,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        notes.unshift(newNote);
+    }
     
-    notes.unshift(newNote); // Add to beginning
     await saveNotes(notes);
     displayNotes(notes);
-    clearInput();
+    closeModal();
 }
 
 // Delete a note
 async function deleteNote(id) {
+    if (!confirm('Delete this note?')) return;
+    
     const result = await chrome.storage.local.get([STORAGE_KEY]);
     const notes = result[STORAGE_KEY] || [];
     
@@ -81,41 +183,49 @@ async function deleteNote(id) {
 
 // Display all notes
 function displayNotes(notes) {
-    noteCount.textContent = notes.length;
-    
     if (notes.length === 0) {
-        notesList.innerHTML = '<p class="empty-state">No notes yet. Start writing!</p>';
+        notesList.innerHTML = '<p class="empty-state">No notes yet. Click the + button to start!</p>';
         return;
     }
     
-    notesList.innerHTML = notes.map(note => `
-        <div class="note-card" data-id="${note.id}">
-            <div class="note-content">${escapeHtml(note.text)}</div>
-            <div class="note-footer">
-                <span class="note-time">${note.dateFormatted}</span>
-                <button class="delete-btn" onclick="deleteNote(${note.id})">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-                    </svg>
-                </button>
+    notesList.innerHTML = notes.map(note => {
+        const preview = note.content.substring(0, 80);
+        return `
+            <div class="note-card" data-id="${note.id}" onclick="openModal(${note.id})">
+                <h3 class="note-title">${escapeHtml(note.title)}</h3>
+                <p class="note-preview">${escapeHtml(preview)}${note.content.length > 80 ? '...' : ''}</p>
+                <div class="note-footer">
+                    <span class="color-indicator" style="background: ${note.color};"></span>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
-// Clear input field
-function clearInput() {
-    noteInput.value = '';
-    noteInput.focus();
+// Search functionality
+function handleSearch(e) {
+    const query = e.target.value.toLowerCase().trim();
+    
+    if (!query) {
+        displayNotes(allNotes);
+        return;
+    }
+    
+    const filtered = allNotes.filter(note => 
+        note.title.toLowerCase().includes(query) || 
+        note.content.toLowerCase().includes(query)
+    );
+    
+    displayNotes(filtered);
 }
 
 // Escape HTML to prevent XSS
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
-    return div.innerHTML.replace(/\n/g, '<br>');
+    return div.innerHTML;
 }
 
-// Make deleteNote available globally
+// Make functions available globally
 window.deleteNote = deleteNote;
+window.openModal = openModal;
