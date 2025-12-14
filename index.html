@@ -7,83 +7,102 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Keep Note</h1>
-            <button id="themeToggle" class="theme-toggle" title="Toggle theme">
-                <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="5"/>
-                    <line x1="12" y1="1" x2="12" y2="3"/>
-                    <line x1="12" y1="21" x2="12" y2="23"/>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                    <line x1="1" y1="12" x2="3" y2="12"/>
-                    <line x1="21" y1="12" x2="23" y2="12"/>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                </svg>
-                <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    <!-- Home View -->
+    <div id="homeView" class="view active">
+        <div class="container">
+            <header>
+                <h1>Keep Note</h1>
+                <button id="themeToggle" class="theme-toggle" title="Toggle theme">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+            </header>
+
+            <div class="search-section">
+                <div class="search-box">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="Search note..">
+                    <button class="grid-toggle" title="Toggle view">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="notes-section">
+                <div id="notesList" class="notes-grid">
+                    <p class="empty-state">No notes yet. Click the + button to start!</p>
+                </div>
+            </div>
+
+            <!-- Floating Action Button -->
+            <button id="fab" class="fab" title="Add note">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
             </button>
-        </header>
-
-        <div class="search-section">
-            <div class="search-box">
-                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"/>
-                    <path d="m21 21-4.35-4.35"/>
-                </svg>
-                <input type="text" id="searchInput" placeholder="Search note..">
-                <button class="grid-toggle" title="Toggle view">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <rect x="3" y="3" width="7" height="7" rx="1"/>
-                        <rect x="14" y="3" width="7" height="7" rx="1"/>
-                        <rect x="14" y="14" width="7" height="7" rx="1"/>
-                        <rect x="3" y="14" width="7" height="7" rx="1"/>
-                    </svg>
-                </button>
-            </div>
         </div>
-
-        <div class="notes-section">
-            <div id="notesList" class="notes-grid">
-                <p class="empty-state">No notes yet. Click the + button to start!</p>
-            </div>
-        </div>
-
-        <!-- Floating Action Button -->
-        <button id="fab" class="fab" title="Add note">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-        </button>
     </div>
 
-    <!-- Note Modal -->
-    <div id="noteModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <input type="text" id="noteTitle" placeholder="Title" class="note-title-input">
-                <button id="closeModal" class="close-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                </button>
-            </div>
-            <textarea id="noteContent" placeholder="Write your note here..." rows="8"></textarea>
-            <div class="modal-footer">
-                <div class="color-picker">
-                    <button class="color-dot" data-color="#e91e63" style="background: #e91e63;"></button>
-                    <button class="color-dot" data-color="#3f51b5" style="background: #3f51b5;"></button>
-                    <button class="color-dot" data-color="#9c27b0" style="background: #9c27b0;"></button>
-                    <button class="color-dot" data-color="#4caf50" style="background: #4caf50;"></button>
-                    <button class="color-dot" data-color="#00bcd4" style="background: #00bcd4;"></button>
-                    <button class="color-dot" data-color="#ff9800" style="background: #ff9800;"></button>
+    <!-- Editor View -->
+    <div id="editorView" class="view">
+        <div class="container">
+            <header class="editor-header">
+                <nav class="breadcrumbs">
+                    <button id="backBtn" class="breadcrumb-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <span class="breadcrumb-separator">/</span>
+                    <span id="breadcrumbTitle" class="breadcrumb-title">New Note</span>
+                </nav>
+                <div class="header-actions">
+                    <button id="deleteNoteBtn" class="icon-btn delete-note-btn" title="Delete note" style="display: none;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                    </button>
+                    <button id="saveNoteBtn" class="btn btn-save">Save</button>
                 </div>
-                <button id="saveNote" class="btn btn-save">Save</button>
+            </header>
+
+            <div class="editor-content">
+                <input type="text" id="noteTitle" placeholder="Title" class="note-title-input">
+                <textarea id="noteContent" placeholder="Write your note here..." class="note-content-input"></textarea>
+                
+                <div class="color-picker-section">
+                    <label class="color-label">Note Color</label>
+                    <div class="color-picker">
+                        <button class="color-dot" data-color="#e91e63" style="background: #e91e63;"></button>
+                        <button class="color-dot" data-color="#3f51b5" style="background: #3f51b5;"></button>
+                        <button class="color-dot" data-color="#9c27b0" style="background: #9c27b0;"></button>
+                        <button class="color-dot" data-color="#4caf50" style="background: #4caf50;"></button>
+                        <button class="color-dot" data-color="#00bcd4" style="background: #00bcd4;"></button>
+                        <button class="color-dot" data-color="#ff9800" style="background: #ff9800;"></button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

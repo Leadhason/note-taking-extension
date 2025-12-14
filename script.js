@@ -3,15 +3,18 @@ const STORAGE_KEY = 'keepNotes';
 const THEME_KEY = 'keepNoteTheme';
 
 // DOM elements
+const homeView = document.getElementById('homeView');
+const editorView = document.getElementById('editorView');
 const notesList = document.getElementById('notesList');
 const fab = document.getElementById('fab');
-const modal = document.getElementById('noteModal');
-const closeModalBtn = document.getElementById('closeModal');
-const saveNoteBtn = document.getElementById('saveNote');
+const backBtn = document.getElementById('backBtn');
+const saveNoteBtn = document.getElementById('saveNoteBtn');
+const deleteNoteBtn = document.getElementById('deleteNoteBtn');
 const noteTitleInput = document.getElementById('noteTitle');
 const noteContentInput = document.getElementById('noteContent');
 const searchInput = document.getElementById('searchInput');
 const themeToggle = document.getElementById('themeToggle');
+const breadcrumbTitle = document.getElementById('breadcrumbTitle');
 const colorDots = document.querySelectorAll('.color-dot');
 
 let currentNoteId = null;
@@ -24,9 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
     loadNotes();
     
     // Event listeners
-    fab.addEventListener('click', openModal);
-    closeModalBtn.addEventListener('click', closeModal);
+    fab.addEventListener('click', () => openEditor());
+    backBtn.addEventListener('click', goToHome);
     saveNoteBtn.addEventListener('click', saveNote);
+    deleteNoteBtn.addEventListener('click', () => {
+        if (currentNoteId) {
+            deleteNote(currentNoteId);
+        }
+    });
     searchInput.addEventListener('input', handleSearch);
     themeToggle.addEventListener('click', toggleTheme);
     
@@ -39,17 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    // Close modal on outside click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeModal();
-        }
-    });
-    
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.classList.contains('active')) {
-            closeModal();
+        if (e.key === 'Escape' && editorView.classList.contains('active')) {
+            goToHome();
         }
     });
 });
@@ -72,10 +73,11 @@ async function toggleTheme() {
     await chrome.storage.local.set({ [THEME_KEY]: newTheme });
 }
 
-// Modal functions
-function openModal(noteId = null) {
+// Navigation functions
+function openEditor(noteId = null) {
     currentNoteId = noteId;
-    modal.classList.add('active');
+    homeView.classList.remove('active');
+    editorView.classList.add('active');
     
     if (noteId) {
         // Edit existing note
@@ -84,6 +86,8 @@ function openModal(noteId = null) {
             noteTitleInput.value = note.title;
             noteContentInput.value = note.content;
             selectedColor = note.color;
+            breadcrumbTitle.textContent = note.title || 'Untitled';
+            deleteNoteBtn.style.display = 'flex';
             colorDots.forEach(dot => {
                 dot.classList.toggle('active', dot.dataset.color === note.color);
             });
@@ -93,16 +97,19 @@ function openModal(noteId = null) {
         noteTitleInput.value = '';
         noteContentInput.value = '';
         selectedColor = '#3f51b5';
+        breadcrumbTitle.textContent = 'New Note';
+        deleteNoteBtn.style.display = 'none';
         colorDots.forEach((dot, index) => {
             dot.classList.toggle('active', index === 1);
         });
     }
     
-    noteTitleInput.focus();
+    setTimeout(() => noteTitleInput.focus(), 100);
 }
 
-function closeModal() {
-    modal.classList.remove('active');
+function goToHome() {
+    editorView.classList.remove('active');
+    homeView.classList.add('active');
     currentNoteId = null;
 }
 
@@ -166,7 +173,7 @@ async function saveNote() {
     
     await saveNotes(notes);
     displayNotes(notes);
-    closeModal();
+    goToHome();
 }
 
 // Delete a note
@@ -179,6 +186,7 @@ async function deleteNote(id) {
     const updatedNotes = notes.filter(note => note.id !== id);
     await saveNotes(updatedNotes);
     displayNotes(updatedNotes);
+    goToHome();
 }
 
 // Display all notes
@@ -191,7 +199,7 @@ function displayNotes(notes) {
     notesList.innerHTML = notes.map(note => {
         const preview = note.content.substring(0, 80);
         return `
-            <div class="note-card" data-id="${note.id}" onclick="openModal(${note.id})">
+            <div class="note-card" data-id="${note.id}" onclick="openEditor(${note.id})">
                 <h3 class="note-title">${escapeHtml(note.title)}</h3>
                 <p class="note-preview">${escapeHtml(preview)}${note.content.length > 80 ? '...' : ''}</p>
                 <div class="note-footer">
@@ -228,4 +236,4 @@ function escapeHtml(text) {
 
 // Make functions available globally
 window.deleteNote = deleteNote;
-window.openModal = openModal;
+window.openEditor = openEditor;
