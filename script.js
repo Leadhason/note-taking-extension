@@ -38,6 +38,15 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.addEventListener('input', handleSearch);
     themeToggle.addEventListener('click', toggleTheme);
     
+    // Click handler for note cards (event delegation)
+    notesList.addEventListener('click', (e) => {
+        const noteCard = e.target.closest('.note-card');
+        if (noteCard) {
+            const noteId = parseInt(noteCard.dataset.id);
+            openEditor(noteId);
+        }
+    });
+    
     // Color picker
     colorDots.forEach(dot => {
         dot.addEventListener('click', () => {
@@ -199,7 +208,7 @@ function displayNotes(notes) {
     notesList.innerHTML = notes.map(note => {
         const preview = note.content.substring(0, 80);
         return `
-            <div class="note-card" data-id="${note.id}" onclick="openEditor(${note.id})">
+            <div class="note-card" data-id="${note.id}">
                 <h3 class="note-title">${escapeHtml(note.title)}</h3>
                 <p class="note-preview">${escapeHtml(preview)}${note.content.length > 80 ? '...' : ''}</p>
                 <div class="note-footer">
@@ -233,7 +242,3 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
-
-// Make functions available globally
-window.deleteNote = deleteNote;
-window.openEditor = openEditor;
