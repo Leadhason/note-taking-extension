@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Notes</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Quick Notes</h1>
+        </header>
+
+        <div class="note-input-section">
+            <textarea 
+                id="noteInput" 
+                placeholder="Write your thoughts here..."
+                rows="4"
+            ></textarea>
+            <div class="button-group">
+                <button id="addNote" class="btn btn-primary">Add Note</button>
+                <button id="clearInput" class="btn btn-secondary">Clear</button>
+            </div>
+        </div>
+
+        <div class="notes-section">
+            <div class="section-header">
+                <h2>Your Notes</h2>
+                <span id="noteCount" class="count-badge">0</span>
+            </div>
+            <div id="notesList" class="notes-list">
+                <p class="empty-state">No notes yet. Start writing!</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
